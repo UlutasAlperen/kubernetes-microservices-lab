@@ -1,0 +1,31 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-hpa
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: synergychat-web
+  minReplicas: {{ .Values.web.hpa.minReplicas }}
+  maxReplicas: {{ .Values.web.hpa.maxReplicas }}
+  targetCPUUtilizationPercentage: {{ .Values.web.hpa.targetCPUUtilizationPercentage }}
+{{- if .Values.testcpu.enabled }}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: testcpu-hpa
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: synergychat-testcpu
+  minReplicas: {{ .Values.testcpu.hpa.minReplicas }}
+  maxReplicas: {{ .Values.testcpu.hpa.maxReplicas }}
+  targetCPUUtilizationPercentage: {{ .Values.testcpu.hpa.targetCPUUtilizationPercentage }}
+{{- end }}

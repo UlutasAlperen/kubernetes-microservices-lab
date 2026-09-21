@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-web
+  labels:
+    app: synergychat-web
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: synergychat-web
+  template:
+    metadata:
+      labels:
+        app: synergychat-web
+    spec:
+      containers:
+        - name: synergychat-web
+          image: "{{ .Values.web.image }}:{{ .Values.web.tag }}"
+          envFrom:
+            - configMapRef:
+                name: synergychat-web-configmap
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-api
+  labels:
+    app: synergychat-api
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: synergychat-api
+  template:
+    metadata:
+      labels:
+        app: synergychat-api
+    spec:
+      containers:
+        - name: synergychat-api
+          image: "{{ .Values.api.image }}:{{ .Values.api.tag }}"
+          volumeMounts:
+            - name: synergychat-api-volume
+              mountPath: /persist
+          env:
+            - name: API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: API_PORT
+            - name: API_DB_FILEPATH
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: API_DB_FILEPATH
+            - name: CRAWLER_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-api-configmap
+                  key: CRAWLER_BASE_URL
+      volumes:
+        - name: synergychat-api-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.api.pvc.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-crawler
+  namespace: {{ .Values.crawler.namespace }}
+  labels:
+    app: synergychat-crawler
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.crawler.replicas }}
+  selector:
+    matchLabels:
+      app: synergychat-crawler
+  template:
+    metadata:
+      labels:
+        app: synergychat-crawler
+    spec:
+      containers:
+        {{- range $i, $port := list "CRAWLER_PORT" "CRAWLER_PORT_2" "CRAWLER_PORT_3" }}
+        - name: synergychat-crawler-{{ add $i 1 }}
+          image: "{{ $.Values.crawler.image }}:{{ $.Values.crawler.tag }}"
+          volumeMounts:
+            - mountPath: /cache
+              name: cache-volume
+          env:
+            - name: CRAWLER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-crawler-configmap
+                  key: {{ $port }}
+            - name: CRAWLER_KEYWORDS
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-crawler-configmap
+                  key: CRAWLER_KEYWORDS
+            - name: CRAWLER_DB_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: synergychat-crawler-configmap
+                  key: CRAWLER_DB_PATH
+        {{- end }}
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+{{- if .Values.testcpu.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-testcpu
+  labels:
+    app: synergychat-testcpu
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: synergychat-testcpu
+  template:
+    metadata:
+      labels:
+        app: synergychat-testcpu
+    spec:
+      containers:
+        - name: synergychat-testcpu
+          image: "{{ .Values.testcpu.image }}:{{ .Values.testcpu.tag }}"
+          resources:
+            limits:
+              cpu: {{ .Values.testcpu.cpu }}
+{{- end }}
+{{- if .Values.testram.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synergychat-testram
+  labels:
+    app: synergychat-testram
+    {{- include "synergychart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synergychat-testram
+  template:
+    metadata:
+      labels:
+        app: synergychat-testram
+    spec:
+      containers:
+        - name: synergychat-testram
+          image: "{{ .Values.testram.image }}:{{ .Values.testram.tag }}"
+          resources:
+            limits:
+              memory: {{ .Values.testram.memory }}
+          env:
+            - name: MEGABYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: testram-configmap
+                  key: MEGABYTES
+{{- end }}

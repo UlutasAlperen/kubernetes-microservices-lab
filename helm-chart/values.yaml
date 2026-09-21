@@ -1,0 +1,80 @@
+# Default values for synergychart chart.
+# Bu dosyadaki tüm değerler --set ile override edilebilir.
+
+# Test workload'ları (CKAD alıştırmaları için) — kapatmak için false
+testcpu:
+  enabled: true
+  image: bootdotdev/synergychat-testcpu
+  tag: latest
+  cpu: 10m
+  hpa:
+    minReplicas: 1
+    maxReplicas: 1
+    targetCPUUtilizationPercentage: 50
+
+testram:
+  enabled: true
+  image: bootdotdev/synergychat-testram
+  tag: latest
+  memory: 256Mi
+  config:
+    MEGABYTES: "10"
+
+web:
+  image: docker.io/bootdotdev/synergychat-web
+  tag: latest
+  hpa:
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 50
+  service:
+    port: 80
+    targetPort: 8080
+  config:
+    WEB_PORT: "8080"
+    API_URL: http://synchatapi.internal
+
+api:
+  image: bootdotdev/synergychat-api
+  tag: latest
+  replicas: 1
+  service:
+    port: 80
+    targetPort: 8080
+  pvc:
+    name: synergychat-api-pvc
+    accessMode: ReadWriteOnce
+    size: 1Gi
+  config:
+    API_PORT: "8080"
+    API_DB_FILEPATH: /persist/db.json
+    CRAWLER_BASE_URL: http://crawler-service.crawler.svc.cluster.local
+
+# Crawler ayrı bir namespace'te çalışır (release namespace'i ile aynı olabilir)
+crawler:
+  namespace: crawler
+  image: bootdotdev/synergychat-crawler
+  tag: latest
+  replicas: 1
+  service:
+    port: 80
+    targetPort: 8080
+  config:
+    CRAWLER_PORT: "8080"
+    CRAWLER_PORT_2: "8081"
+    CRAWLER_PORT_3: "8082"
+    CRAWLER_KEYWORDS: love,hate,joy,sadness,anger,disgust,fear,surprise
+    CRAWLER_DB_PATH: /cache/db
+
+# Gateway API (Envoy) yapılandırması
+gateway:
+  className: app-gatewayclass
+  name: app-gateway
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  listener:
+    name: http
+    protocol: HTTP
+    port: 80
+  hostnames:
+    web: synchat.internal
+    api: synchatapi.internal

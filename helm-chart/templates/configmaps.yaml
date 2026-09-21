@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synergychat-web-configmap
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.web.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synergychat-api-configmap
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.api.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synergychat-crawler-configmap
+  namespace: {{ .Values.crawler.namespace }}
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.crawler.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- if .Values.testram.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testram-configmap
+  labels:
+    {{- include "synergychart.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.testram.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
