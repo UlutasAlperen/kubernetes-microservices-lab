@@ -1,6 +1,6 @@
-# Minikube One Node Cluster — CKAD Çalışma Laboratuvarı
+# Kubernetes Microservices Lab
 
-CKAD (Certified Kubernetes Application Developer) sınavı ve genel Kubernetes pratiği için hazırlanmış 1-node Minikube cluster'ı. Gerçek bir 3-tier **SynergyChat** uygulaması üzerinden Deployment, Service, ConfigMap, Multi-container Pod, Volume, PVC, HPA ve Gateway API kavramlarını çalışmayı hedefler.
+CKAD (Certified Kubernetes Application Developer) sınavı ve genel Kubernetes pratiği için hazırladigim 1-node Minikube cluster. Gerçek bir 3-tier **SynergyChat** uygulaması üzerinden Deployment, Service, ConfigMap, Multi-container Pod, Volume, PVC, HPA ve Gateway API kavramlarını çalışmayı hedefler.
 
 Uygulama iki yolla kurulabilir:
 
@@ -16,7 +16,7 @@ Client (browser / curl)
   │
   ▼
 ┌──────────────────────────────────────────────────┐
-│  app-gateway (Gateway API — Envoy)  :80          │
+│  app-gateway (Gateway API - Envoy)  :80          │
 │  ├─ synchat.internal    → web-httproute          │
 │  └─ synchatapi.internal → api-httproute          │
 └─────────────┬───────────────────────┬────────────┘
@@ -89,7 +89,7 @@ helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.2.0 -n envo
 > ```
 > `ACCEPTED` durumunda olmalı.
 
-### 3A. Yöntem 1 — Helm Chart ile Kurulum
+### 3A. Yöntem 1 - Helm Chart ile Kurulum
 
 ```bash
 # Crawler namespace'i (chart release namespace'inden farklıysa)
@@ -130,9 +130,9 @@ helm uninstall synergychat              # kaldırma (crawler ns'dekiler dahil)
 
 > **Not:** Crawler kaynakları `crawler` namespace'inde, diğer kaynaklar release namespace'inde (varsayılan `default`) oluşur. Helm tek release içinde birden fazla namespace'i yönetebilir; ancak `helm uninstall` cross-namespace kaynakları da temizler.
 
-### 3B. Yöntem 2 — Raw YAML ile Kurulum
+### 3B. Yöntem 2 - Raw YAML ile Kurulum
 
-Kaynakları uygulama sırası önemlidir — ConfigMap'ler, PVC ve Gateway kaynakları önce oluşturulmalıdır:
+Kaynakları uygulama sırası önemlidir - ConfigMap'ler, PVC ve Gateway kaynakları önce oluşturulmalıdır:
 
 ```bash
 # Namespace
@@ -147,7 +147,7 @@ kubectl apply -f testram-configmap.yaml
 # 2. PVC (Deployment'tan önce)
 kubectl apply -f api-pvc.yaml
 
-# 3. Altyapı — GatewayClass + Gateway
+# 3. Altyapı - GatewayClass + Gateway
 kubectl apply -f app-gatewayclass.yaml
 kubectl apply -f app-gateway.yaml
 
@@ -261,7 +261,7 @@ kubectl get httproute
 # Tek container'lı Pod
 kubectl logs -l app=synergychat-api
 
-# Multi-container Pod — spesifik container
+# Multi-container Pod - spesifik container
 kubectl logs -l app=synergychat-crawler -n crawler -c synergychat-crawler-1
 kubectl logs -l app=synergychat-crawler -n crawler -c synergychat-crawler-2
 kubectl logs -l app=synergychat-crawler -n crawler -c synergychat-crawler-3
@@ -285,11 +285,11 @@ Bu projedeki YAML'ların CKAD müfredatındaki karşılığı:
 | CKAD Konusu | Projedeki Karşılığı | İlgili Dosya(lar) |
 |---|---|---|
 | **Deployment & ReplicaSet** | web (HPA yönetiyor, min:1 max:4), api (1 replica), crawler (1 replica, ns: crawler) | `*-deployment.yaml` |
-| **ConfigMap — envFrom** | Web deployment tüm anahtarları tek seferde alır | `web-deployment.yaml` → `web-configmap.yaml` |
-| **ConfigMap — configMapKeyRef** | API, crawler ve testram her anahtarı tek tek referans eder | `api-deployment.yaml`, `crawler-deployment.yaml`, `testram-deployment.yaml` |
+| **ConfigMap - envFrom** | Web deployment tüm anahtarları tek seferde alır | `web-deployment.yaml` → `web-configmap.yaml` |
+| **ConfigMap - configMapKeyRef** | API, crawler ve testram her anahtarı tek tek referans eder | `api-deployment.yaml`, `crawler-deployment.yaml`, `testram-deployment.yaml` |
 | **Services (ClusterIP)** | Varsayılan type, port→targetPort mapping | `*-service.yaml` |
 | **Multi-container Pod (Sidecar)** | 3 crawler container aynı Pod içinde çalışır | `crawler-deployment.yaml` |
-| **Volumes — emptyDir** | Sidecar'lar arasında `/cache` paylaşımı | `crawler-deployment.yaml` |
+| **Volumes - emptyDir** | Sidecar'lar arasında `/cache` paylaşımı | `crawler-deployment.yaml` |
 | **PersistentVolumeClaim** | API Pod'u PVC ile `/persist` dizinine kalıcı depolama mount eder | `api-pvc.yaml`, `api-deployment.yaml` |
 | **Horizontal Pod Autoscaler (HPA)** | Web deployment CPU-based auto-scaling, testcpu HPA | `web-hpa.yaml`, `testcpu-hpa.yaml` |
 | **Resource Limits (CPU/Memory)** | testcpu CPU limit (10m), testram memory limit (256Mi) | `testcpu-deployment.yaml`, `testram-deployment.yaml` |
@@ -304,7 +304,7 @@ Bu projedeki YAML'ların CKAD müfredatındaki karşılığı:
 
 Her alıştırma, sınavda karşılaşabileceğin gerçek senaryolara dayanır. Önce kendin dene, sonra çözüme bak.
 
-### Alıştırma 1 — Replica Scaling
+### Alıştırma 1 - Replica Scaling
 
 ```bash
 kubectl scale deployment synergychat-web --replicas=5
@@ -314,7 +314,7 @@ kubectl get pods -l app=synergychat-web
 kubectl scale deployment synergychat-web --replicas=3
 ```
 
-### Alıştırma 2 — ConfigMap Güncelleme ve Pod Restart
+### Alıştırma 2 - ConfigMap Güncelleme ve Pod Restart
 
 ```bash
 kubectl edit configmap synergychat-api-configmap
@@ -325,7 +325,7 @@ kubectl rollout restart deployment synergychat-api
 kubectl rollout status deployment synergychat-api
 ```
 
-### Alıştırma 3 — Sidecar Container Debug
+### Alıştırma 3 - Sidecar Container Debug
 
 ```bash
 # 2. sidecar'ın logları
@@ -335,13 +335,13 @@ kubectl logs -l app=synergychat-crawler -n crawler -c synergychat-crawler-2
 kubectl get pods -l app=synergychat-crawler -n crawler -o jsonpath='{.items[*].status.containerStatuses[*].name}'
 ```
 
-### Alıştırma 4 — Service Selector Kırma ve Onarma
+### Alıştırma 4 - Service Selector Kırma ve Onarma
 
 ```bash
 kubectl edit svc api-service
 # selector.app: synergychat-api → wrong-label
 
-kubectl get endpoints api-service   # Endpoint'ler boş — trafik kesildi
+kubectl get endpoints api-service   # Endpoint'ler boş - trafik kesildi
 
 kubectl edit svc api-service
 # selector.app: wrong-label → synergychat-api
@@ -349,7 +349,7 @@ kubectl edit svc api-service
 kubectl get endpoints api-service   # Endpoint'ler geri geldi
 ```
 
-### Alıştırma 5 — Rolling Update
+### Alıştırma 5 - Rolling Update
 
 ```bash
 kubectl set image deployment/synergychat-web synergychat-web=bootdotdev/synergychat-web:v2
@@ -358,7 +358,7 @@ kubectl rollout undo deployment/synergychat-web
 kubectl rollout history deployment/synergychat-web
 ```
 
-### Alıştırma 6 — Resource Limits Ekleme
+### Alıştırma 6 - Resource Limits Ekleme
 
 ```bash
 kubectl edit deployment synergychat-api
@@ -382,7 +382,7 @@ resources:
 kubectl patch deployment synergychat-api --type json -p '[{"op":"add","path":"/spec/template/spec/containers/0/resources","value":{"requests":{"cpu":"100m","memory":"128Mi"},"limits":{"cpu":"500m","memory":"256Mi"}}}]'
 ```
 
-### Alıştırma 7 — Node Affinity
+### Alıştırma 7 - Node Affinity
 
 ```bash
 kubectl get nodes --show-labels
@@ -397,7 +397,7 @@ spec:
         kubernetes.io/os: linux
 ```
 
-### Alıştırma 8 — Pod Silme ve Self-Healing
+### Alıştırma 8 - Pod Silme ve Self-Healing
 
 ```bash
 kubectl get pods -l app=synergychat-web
@@ -405,7 +405,7 @@ kubectl delete pod <pod-adı>
 kubectl get pods -l app=synergychat-web   # Yeni Pod yeni bir adla oluşur
 ```
 
-### Alıştırma 9 — HPA ile Otomatik Ölçeklendirme
+### Alıştırma 9 - HPA ile Otomatik Ölçeklendirme
 
 ```bash
 kubectl get hpa web-hpa
@@ -420,7 +420,7 @@ kubectl run load-gen --image=busybox --rm -it --restart=Never -- /bin/sh -c "whi
 kubectl get hpa web-hpa -w
 ```
 
-### Alıştırma 10 — PVC ve Veri Kalıcılığı
+### Alıştırma 10 - PVC ve Veri Kalıcılığı
 
 ```bash
 kubectl get pvc synergychat-api-pvc
@@ -433,7 +433,7 @@ kubectl get pods -l app=synergychat-api -w
 kubectl exec <yeni-api-pod> -- ls /persist/
 ```
 
-### Alıştırma 11 — Memory Limits ve OOMKilled
+### Alıştırma 11 - Memory Limits ve OOMKilled
 
 ```bash
 kubectl edit configmap testram-configmap
@@ -453,7 +453,7 @@ kubectl rollout restart deployment synergychat-testram
 
 ### CKAD Cep Rehberi
 
-Sınavda sıkça karşılaşılan tuzaklar — bu projedeki örneklerle:
+Sınavda sıkça karşılaşılan tuzaklar - bu projedeki örneklerle:
 
 | Konu | Özet | Proje Örneği |
 |---|---|---|
@@ -479,7 +479,7 @@ Eski yaklaşım `old_configs/old-api-service.yaml` içinde: Service `type: NodeP
 | | NodePort | Gateway API |
 |---|---|---|
 | Erişim | `<node-ip>:30000-32767` | Domain + standart port (80) |
-| Domain-based routing | Yok — her servis ayrı port | HTTPRoute hostname ile |
+| Domain-based routing | Yok - her servis ayrı port | HTTPRoute hostname ile |
 | Path/header matching | Yok | `PathPrefix`, `Exact`, header, query param |
 | Load balancing | L4 | L7 |
 | Rol ayrımı | Tek Service nesnesi | GatewayClass/Gateway (infra) + HTTPRoute (app) |
@@ -489,9 +489,9 @@ Bu projedeki zincir: `GatewayClass` (Envoy controller) → `Gateway` (:80 listen
 
 ### Crawler Sidecar Pattern
 
-`crawler-deployment.yaml` — tek Pod içinde 3 container:
+`crawler-deployment.yaml` - tek Pod içinde 3 container:
 
-1. **3 container, 1 Pod:** Aynı network namespace — `localhost` üzerinden iletişim
+1. **3 container, 1 Pod:** Aynı network namespace - `localhost` üzerinden iletişim
 2. **emptyDir volume:** Tüm container'lar `/cache`'i paylaşır; Pod silinince veri gider
 3. **ConfigMap ile port yönetimi:** Her container farklı port anahtarı kullanır (`CRAWLER_PORT`, `CRAWLER_PORT_2`, `CRAWLER_PORT_3`)
 4. **Service yalnızca 1. container'ı hedefler:** `crawler-service` yalnızca `targetPort: 8080`'ı (crawler-1) expose eder
@@ -524,11 +524,11 @@ Pod → volume(persistentVolumeClaim: synergychat-api-pvc) → container volumeM
 Notlar:
 
 - Minikube'de `standard` StorageClass varsayılan olarak dinamik PV provisioning sağlar
-- `ReadWriteOnce` tek node mount'u demektir — Minikube tek node olduğu için sorun değil
+- `ReadWriteOnce` tek node mount'u demektir - Minikube tek node olduğu için sorun değil
 
 ### HPA ve Resource Limits
 
-**web-hpa.yaml** — CPU %50 hedefiyle 1-4 replica arası ölçekleme:
+**web-hpa.yaml** - CPU %50 hedefiyle 1-4 replica arası ölçekleme:
 
 ```yaml
 spec:
@@ -541,9 +541,9 @@ spec:
   targetCPUUtilizationPercentage: 50
 ```
 
-**testcpu** — `cpu: 10m` limiti (toplam CPU'nun %1'i). CPU limiti aşıldığında container öldürülmez, **throttle** edilir.
+**testcpu** - `cpu: 10m` limiti (toplam CPU'nun %1'i). CPU limiti aşıldığında container öldürülmez, **throttle** edilir.
 
-**testram** — `memory: 256Mi` limiti + ConfigMap'ten `MEGABYTES` değeri. `MEGABYTES: "500"` yapıldığında limit aşılır ve container kernel tarafından **OOMKilled** edilir.
+**testram** - `memory: 256Mi` limiti + ConfigMap'ten `MEGABYTES` değeri. `MEGABYTES: "500"` yapıldığında limit aşılır ve container kernel tarafından **OOMKilled** edilir.
 
 ```bash
 # OOMKilled tespiti
@@ -665,25 +665,25 @@ kubernetes-microservices-lab/
 │       ├── pvc.yaml                # API PVC (1Gi, ReadWriteOnce)
 │       ├── hpa.yaml                # web-hpa, testcpu-hpa
 │       └── gateway.yaml            # GatewayClass, Gateway, HTTPRoute'lar
-├── app-gatewayclass.yaml           # GatewayClass — Envoy controller tanımı
-├── app-gateway.yaml                # Gateway — HTTP listener :80
-├── api-configmap.yaml              # ConfigMap — API ortam değişkenleri
-├── api-deployment.yaml             # Deployment — API backend (1 replica, PVC mount)
-├── api-service.yaml                # Service — API ClusterIP 80→8080
-├── api-httproute.yaml              # HTTPRoute — synchatapi.internal → API
-├── api-pvc.yaml                    # PersistentVolumeClaim — API 1Gi kalıcı depolama
-├── crawler-configmap.yaml          # ConfigMap — Crawler ortam değişkenleri (ns: crawler)
-├── crawler-deployment.yaml         # Deployment — Crawler (3 sidecar + emptyDir, ns: crawler)
-├── crawler-service.yaml            # Service — Crawler ClusterIP 80→8080 (ns: crawler)
-├── web-configmap.yaml              # ConfigMap — Web ortam değişkenleri
-├── web-deployment.yaml             # Deployment — Web frontend (HPA: min:1, max:4)
-├── web-service.yaml                # Service — Web ClusterIP 80→8080
-├── web-httproute.yaml              # HTTPRoute — synchat.internal → Web
-├── web-hpa.yaml                    # HorizontalPodAutoscaler — Web CPU-based scaling
-├── testcpu-deployment.yaml         # Deployment — CPU stress test (10m CPU limit)
-├── testcpu-hpa.yaml                # HorizontalPodAutoscaler — CPU test auto-scaling
-├── testram-configmap.yaml          # ConfigMap — RAM test bellek miktarı
-├── testram-deployment.yaml         # Deployment — RAM stress test (256Mi memory limit)
+├── app-gatewayclass.yaml           # GatewayClass - Envoy controller tanımı
+├── app-gateway.yaml                # Gateway - HTTP listener :80
+├── api-configmap.yaml              # ConfigMap - API ortam değişkenleri
+├── api-deployment.yaml             # Deployment - API backend (1 replica, PVC mount)
+├── api-service.yaml                # Service - API ClusterIP 80→8080
+├── api-httproute.yaml              # HTTPRoute - synchatapi.internal → API
+├── api-pvc.yaml                    # PersistentVolumeClaim - API 1Gi kalıcı depolama
+├── crawler-configmap.yaml          # ConfigMap - Crawler ortam değişkenleri (ns: crawler)
+├── crawler-deployment.yaml         # Deployment - Crawler (3 sidecar + emptyDir, ns: crawler)
+├── crawler-service.yaml            # Service - Crawler ClusterIP 80→8080 (ns: crawler)
+├── web-configmap.yaml              # ConfigMap - Web ortam değişkenleri
+├── web-deployment.yaml             # Deployment - Web frontend (HPA: min:1, max:4)
+├── web-service.yaml                # Service - Web ClusterIP 80→8080
+├── web-httproute.yaml              # HTTPRoute - synchat.internal → Web
+├── web-hpa.yaml                    # HorizontalPodAutoscaler - Web CPU-based scaling
+├── testcpu-deployment.yaml         # Deployment - CPU stress test (10m CPU limit)
+├── testcpu-hpa.yaml                # HorizontalPodAutoscaler - CPU test auto-scaling
+├── testram-configmap.yaml          # ConfigMap - RAM test bellek miktarı
+├── testram-deployment.yaml         # Deployment - RAM stress test (256Mi memory limit)
 ├── old_configs/                    # Eski yapılandırmalar (arşiv)
 │   ├── old-api-service.yaml        # NodePort:30080 (Gateway API öncesi)
 │   ├── old-emptydir-crawler-deployment.yaml
